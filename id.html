@@ -1,15 +1,45 @@
-<script src="IDkoop.js"></script>
-<script src="IDneutral.js"></script>
-<script src="IDpook.js"></script>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>i · EBENE · INPUT · RAW</title>
 
-<script>
-function showID(mode) {
-    const map = {
-        koop: ID_KOOP,
-        neutral: ID_NEUTRAL,
-        pook: ID_POOK
-    };
-    const id = map[mode];
-    document.getElementById("id-info").innerText = id.info();
-}
-</script>
+<style>
+  body { background:#000; color:#00ffff; font-family:Consolas; padding:30px; }
+  h1 { color:#33ccff; text-shadow:0 0 10px #00ffff; }
+  .box { background:#111; border:1px solid #333; padding:20px; margin-top:20px; border-radius:8px; }
+  pre { background:#000; border:1px solid #333; padding:12px; border-radius:6px; white-space:pre-wrap; }
+</style>
+</head>
+
+<body>
+
+<h1>i · EBENE · INPUT · RAW</h1>
+
+<div class="box">
+<pre>
+EBENE-ID: i-RAW
+MODUS: INPUT
+TRÄGER: aktiv
+SCAN: bereit
+STATE: stabil
+</pre>
+</div>
+
+<div class="box">
+<h2>Struktur</h2>
+<pre>
+i.room
+RAW.tmp
+RAW.scan
+RAW.map
+RAW.pipe
+RAW.state
+README.md
+index.html
+id.html
+</pre>
+</div>
+
+</body>
+</html>
