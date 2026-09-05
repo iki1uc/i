@@ -1,82 +1,779 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>i · EBENE · INPUT · RAW · Träger</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧿 81‑MATRIX · RESPO · BOOT‑BLOCK · PFAD‑LOGIK</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: radial-gradient(ellipse at 20% 30%, #0a0e1a, #000000);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', 'Consolas', monospace;
+      padding: 16px;
+      color: #c0d0d0;
+    }
+    .container {
+      max-width: 1300px;
+      width: 100%;
+      background: rgba(6,8,16,0.6);
+      backdrop-filter: blur(4px);
+      border-radius: 40px;
+      padding: 24px 30px 30px;
+      border: 1px solid rgba(160,200,240,0.05);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9), inset 0 0 80px rgba(100,180,255,0.02);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(160,200,240,0.06);
+      padding-bottom: 10px;
+      margin-bottom: 18px;
+    }
+    header h1 {
+      font-size: 26px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #e0e8f0, #b0c8d8, #8098b0, #c0d8e8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 small {
+      font-size: 13px;
+      letter-spacing: 2px;
+      -webkit-text-fill-color: #4a5a6a;
+      color: #4a5a6a;
+    }
+    .status-leds {
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+      color: #5a7a8a;
+    }
+    .status-leds span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .led {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #2a4a5a;
+      transition: 0.3s;
+    }
+    .led.on { background: #8cf0d0; box-shadow: 0 0 12px #8cf0d0; }
+    .led.pulse { background: #f0d080; animation: pulse 1.2s infinite; }
+    .led.off { background: #2a4a5a; }
+    @keyframes pulse {
+      0%,100%{opacity:0.4;transform:scale(0.8)}
+      50%{opacity:1;transform:scale(1.2)}
+    }
 
-<style>
-  body { background:#000; color:#00ffff; font-family:Consolas; padding:20px; }
-  h1 { color:#33ccff; text-shadow:0 0 10px #00ffff; }
-  .panel { background:#111; border:1px solid #333; padding:15px; margin:20px 0; border-radius:8px; }
-  pre { background:#000; border:1px solid #333; padding:12px; border-radius:6px; white-space:pre-wrap; }
-</style>
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: 12px 0 20px;
+    }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+    /* 9x9 Matrix */
+    .matrix-wrap {
+      background: rgba(0,0,0,0.25);
+      border-radius: 20px;
+      padding: 12px;
+      border: 1px solid rgba(100,180,255,0.03);
+    }
+    .matrix-wrap h2 {
+      font-size: 13px;
+      color: #f0d080;
+      letter-spacing: 2px;
+      border-bottom: 1px solid rgba(255,215,0,0.04);
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+    }
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 3px;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    .cell {
+      background: rgba(24,32,40,0.25);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #8a9aaa;
+      transition: all 0.2s cubic-bezier(0.15,0.8,0.3,1.2);
+      cursor: pointer;
+      border: 1px solid rgba(100,140,170,0.03);
+      text-shadow: 0 0 6px rgba(160,200,240,0.1);
+      aspect-ratio: 1 / 1;
+    }
+    .cell:hover {
+      border-color: rgba(200,230,255,0.15);
+      transform: scale(1.02);
+      z-index: 2;
+    }
+    .cell.active {
+      background: radial-gradient(circle at 30% 30%, #d8e8f0, #a0b8c8);
+      color: #0a1218;
+      border-color: #b0d0e0;
+      box-shadow: 0 0 20px rgba(180,220,255,0.3), inset 0 -4px 8px rgba(0,0,0,0.2);
+      transform: scale(1.06);
+      font-weight: bold;
+    }
+    .cell.glow {
+      animation: glowPulse 0.6s ease-out;
+    }
+    @keyframes glowPulse {
+      0% { box-shadow: 0 0 0px rgba(255,215,0,0); }
+      50% { box-shadow: 0 0 30px rgba(255,215,0,0.6); transform: scale(1.15); }
+      100% { box-shadow: 0 0 10px rgba(255,215,0,0); transform: scale(1); }
+    }
+
+    /* Panel rechts */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: rgba(10,14,20,0.3);
+      border: 1px solid rgba(100,180,255,0.04);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+    .card h3 {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 1.5px;
+      color: #5a7a8a;
+      border-bottom: 1px solid rgba(100,180,255,0.02);
+      padding-bottom: 5px;
+      margin-bottom: 8px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .row .label { color: #5a6a7a; }
+    .row .value { font-weight: 500; color: #d0e0e8; }
+    .row .value.highlight { color: #f0d080; }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0;
+    }
+    button {
+      background: rgba(20,28,36,0.5);
+      border: 1px solid rgba(120,160,190,0.08);
+      color: #9ab0c0;
+      padding: 5px 14px;
+      border-radius: 30px;
+      font-size: 11px;
+      font-family: inherit;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: rgba(40,70,90,0.2);
+      border-color: rgba(160,200,240,0.15);
+      color: #d0e8f8;
+    }
+    button.primary { border-color: rgba(255,215,0,0.15); color: #f0d080; }
+    button.primary:hover { background: rgba(255,215,0,0.05); border-color: #f0d080; }
+    button.secondary { border-color: rgba(0,204,255,0.1); color: #70c8ff; }
+    button.secondary:hover { background: rgba(0,204,255,0.04); }
+    button.danger { border-color: rgba(255,80,80,0.08); color: #d06060; }
+    button.danger:hover { background: rgba(255,80,80,0.04); }
+    button.move { border-color: rgba(255,102,255,0.1); color: #ff66ff; }
+    button.move:hover { background: rgba(255,102,255,0.04); }
+
+    .energy-bar {
+      background: #0e141c;
+      border-radius: 8px;
+      height: 6px;
+      margin: 6px 0 4px;
+      overflow: hidden;
+      border: 1px solid #16202a;
+    }
+    .energy-bar .fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff6b6b, #f0d080, #8cf0d0);
+      transition: width 0.3s;
+    }
+
+    /* Orbit Canvas */
+    .orbit-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas#orbitCanvas {
+      width: 100%;
+      max-width: 280px;
+      aspect-ratio: 1 / 1;
+      background: #0a0e14;
+      border: 1px solid #16202a;
+      border-radius: 14px;
+      margin: 4px auto;
+    }
+    .pfad-visual {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: #3a4a5a;
+      margin: 4px 0;
+    }
+    .pfad-visual .active { color: #f0d080; text-shadow: 0 0 16px #f0d08044; }
+    .pfad-visual .sep { color: #1a2230; }
+
+    .log-box {
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      padding: 8px 14px;
+      max-height: 100px;
+      overflow-y: auto;
+      font-size: 10px;
+      line-height: 1.6;
+      color: #5a6a7a;
+      border: 1px solid rgba(100,140,170,0.02);
+      margin-top: 4px;
+    }
+    .log-box .entry { border-bottom: 1px solid #0e141c; padding: 1px 0; }
+    .log-box .time { color: #2a3a4a; }
+    .log-box .msg { color: #b0b8c0; }
+    .log-box .msg.highlight { color: #f0d080; }
+
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 14px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 16px;
+      border: 1px solid rgba(100,180,255,0.02);
+      font-size: 11px;
+      color: #5a6a7a;
+    }
+    .footer .stat { display: flex; align-items: center; gap: 4px; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #080c12; }
+    ::-webkit-scrollbar-thumb { background: #16202a; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🧿 81‑MATRIX <small>RESPO · BOOT‑BLOCK · PFAD‑LOGIK</small></h1>
+    <div class="status-leds">
+      <span><span class="led on" id="ledSystem"></span> SYSTEM</span>
+      <span><span class="led pulse" id="ledPulse"></span> LEBENDIG</span>
+      <span><span class="led" id="ledConn"></span> VERBINDUNG</span>
+    </div>
+  </header>
+
+  <div class="main-grid">
+
+    <!-- Matrix -->
+    <div class="matrix-wrap">
+      <h2>🌀 9×9 · 81 ZELLEN</h2>
+      <div class="matrix" id="matrixGrid"></div>
+      <div style="display:flex; gap:12px; margin-top:8px; font-size:11px; color:#5a7a8a; flex-wrap:wrap; justify-content:center;">
+        <span>🔹 Klick = aktivieren · <span id="activeCount">0</span>/81</span>
+        <span>⚡ Energie <span id="energyDisplay">0</span>%</span>
+        <span>🎯 Score <span id="scoreDisplay">0</span></span>
+      </div>
+    </div>
+
+    <!-- Panel -->
+    <div class="panel">
+
+      <!-- Engine -->
+      <div class="card">
+        <h3>🧠 ENGINE · KERN</h3>
+        <div class="row"><span class="label">pump</span><span class="value highlight" id="pumpDisplay">0</span></div>
+        <div class="row"><span class="label">Formel A (pump/6)</span><span class="value" id="formADisplay">0.00</span></div>
+        <div class="row"><span class="label">Formel B (pump/8)</span><span class="value" id="formBDisplay">0.00</span></div>
+        <div class="row"><span class="label">hits (A>0)</span><span class="value" id="hitsDisplay">0</span></div>
+        <div class="btn-row">
+          <button class="primary" id="btnPredictive">▶ predictiveEngine()</button>
+          <button class="danger" id="btnResetEngine">⟲ Reset</button>
+        </div>
+      </div>
+
+      <!-- Moves + Achse -->
+      <div class="card">
+        <h3>🌀 MOVES & AXIOME</h3>
+        <div class="btn-row">
+          <button class="move" data-move="OI">OI · OUT→IN</button>
+          <button class="move" data-move="IO">IO · IN→OUT</button>
+          <button class="move" data-move="XI">XI · CROSS→IN</button>
+          <button class="move" data-move="IX">IX · IN→CROSS</button>
+        </div>
+        <div class="row"><span class="label">letzter Move</span><span class="value highlight" id="lastMoveDisplay">—</span></div>
+        <div class="row"><span class="label">Achse</span><span class="value" id="axleDisplay">neutral</span></div>
+        <div class="btn-row">
+          <button class="secondary" id="btnToggleAxle">↕ toggleAxle()</button>
+          <button id="btnDoor" style="border-color:#ff6b6b;color:#ff6b6b;">🚪 DOOR</button>
+          <button id="btnDoo" style="border-color:#b388ff;color:#b388ff;">◈ DOO</button>
+        </div>
+      </div>
+
+      <!-- Orbit / PFAD -->
+      <div class="card orbit-wrap">
+        <h3>🌐 ORBIT · PFAD</h3>
+        <canvas id="orbitCanvas" width="280" height="280"></canvas>
+        <div class="pfad-visual" id="pfadVisual">
+          <span class="active" id="p0">81</span><span class="sep">→</span>
+          <span id="p1">9</span><span class="sep">→</span>
+          <span id="p2">3</span><span class="sep">→</span>
+          <span id="p3">9</span><span class="sep">→</span>
+          <span id="p4">81</span>
+        </div>
+        <div class="energy-bar"><div class="fill" id="energyFill"></div></div>
+        <div class="row"><span class="label">Aktueller Wert</span><span class="value" id="a81Display">81</span></div>
+        <div class="row"><span class="label">Zahnrad</span><span class="value" id="gearDisplay">0</span></div>
+        <div class="row"><span class="label">Modus</span><span class="value" id="modeDisplay" style="color:#6ec8ff;">STAGE</span></div>
+        <div class="btn-row">
+          <button class="primary" id="btnStep">▶ Step</button>
+          <button id="btnLoop">▶ Loop</button>
+          <button id="btnStop">⏹ Stop</button>
+          <button id="btnOmni" style="border-color:#b388ff;color:#b388ff;">🌀 OMNI</button>
+          <button class="danger" id="btnResetAll">⟲ Reset</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="log-box" id="logBox">
+    <div class="entry"><span class="time">[init]</span> <span class="msg highlight">81‑MATRIX · BOOT‑BLOCK · PFAD‑LOGIK geladen</span></div>
+  </div>
+
+  <div class="footer">
+    <div class="stat">🔹 aktiv: <span id="footerActive">0</span>/81</div>
+    <div class="stat">⚡ Energie: <span id="footerEnergy">0</span>%</div>
+    <div class="stat">🌀 Zahnrad: <span id="footerGear">0</span></div>
+    <div class="stat">⌨️  space=Step  l=Loop  o=Omni  r=Reset</div>
+  </div>
+
+</div>
 
 <script>
-async function load(path){
-  try{
-    const r = await fetch("./" + path);
-    if(!r.ok) return null;
-    return await r.text();
-  }catch(e){
-    return null;
+// ================================================================
+//  81‑MATRIX · BOOT‑BLOCK · PFAD‑LOGIK
+// ================================================================
+
+// ─── SYMBOLE (aus QUECKSILBER) ──────────────────────────────────
+const SYMBOLE = [
+  "▲","▼","◄","►","◆","◇","○","●","■","□","✦","✧","✪","✫","✬","✭","✮","✯",
+  "☀","☾","⊕","⚑","⚐","⚙","✹","✸","✶","✷","✳","✴","✱","✲","✢","✣","✤","✥",
+  "✦","✧","✩","✪","✫","✬","✭","✮","✯","✰","✱","✲","✳","✴","✵","✶","✷","✸",
+  "✹","✺","✻","✼","✽","✾","✿","❀","❁","❂","❃","❄","❅","❆","❇","❈","❉","❊",
+  "✦","✧","✪","✫","✬","✭","✮","✯","✰","✱","✲","✳","✴","✵","✶","✷","✸","✹"
+];
+
+// ─── PFAD ──────────────────────────────────────────────────────
+const PFAD = [81, 9, 3, 9, 81];
+const MODE_MAP = {
+  0:'STAGE', 1:'STAGE', 2:'STAGE', 3:'STAGE',
+  4:'AIR', 5:'AIR', 6:'AIR', 7:'AIR',
+  8:'AIV', 9:'AIV', 10:'OMNI', 11:'OMNI'
+};
+
+// ─── STATE ──────────────────────────────────────────────────────
+const state = {
+  grid: [],
+  activeCount: 0,
+  score: 0,
+  energy: 0,
+  pump: 0,
+  hits: 0,
+  lastMove: '—',
+  axle: 'neutral',
+  door: false,
+  doo: false,
+  pfadIndex: 0,
+  a81: PFAD[0],
+  gear: 0,
+  mode: 'STAGE',
+  loopTimer: null,
+  loopActive: false,
+  stepCount: 0
+};
+
+// Für externe Abfrage (z.B. via iframe)
+window.STATE = state;
+
+// ─── AUDIO ──────────────────────────────────────────────────────
+let audioCtx = null;
+function playTone(freq=440, dur=0.1) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = freq + (Math.random()*20-10);
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  } catch(_) {}
+}
+
+// ─── GRID AUFBAUEN ─────────────────────────────────────────────
+function buildGrid() {
+  const container = document.getElementById('matrixGrid');
+  container.innerHTML = '';
+  state.grid = [];
+  for (let i=0; i<81; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.idx = i;
+    const sym = SYMBOLE[i % SYMBOLE.length];
+    cell.textContent = sym;
+    cell.addEventListener('click', () => handleCellClick(i));
+    container.appendChild(cell);
+    state.grid.push({ active: false, elem: cell, symbol: sym });
+  }
+  updateActiveCount();
+}
+
+function handleCellClick(idx) {
+  const cell = state.grid[idx];
+  if (!cell) return;
+  // Toggle
+  cell.active = !cell.active;
+  const el = cell.elem;
+  if (cell.active) {
+    el.classList.add('active', 'glow');
+    setTimeout(() => el.classList.remove('glow'), 600);
+    state.activeCount++;
+    state.score += 10;
+    state.energy = Math.min(100, state.energy + 2);
+    // Engine
+    state.pump++;
+    state.hits += (state.pump > 0) ? 1 : 0;
+    playTone(600 + Math.random()*300, 0.1);
+    // DS9 Glow (zufällig)
+    if (Math.random() > 0.7) {
+      el.style.boxShadow = '0 0 40px rgba(255,215,0,0.6)';
+      setTimeout(() => el.style.boxShadow = '', 300);
+    }
+  } else {
+    el.classList.remove('active');
+    state.activeCount--;
+    state.score = Math.max(0, state.score - 2);
+    state.energy = Math.max(0, state.energy - 1);
+  }
+  updateUI();
+  updateEngineUI();
+  log(`🔹 Zelle ${idx} ${cell.active ? 'aktiviert' : 'deaktiviert'} · Score ${state.score}`, 'highlight');
+}
+
+// ─── ENGINE ─────────────────────────────────────────────────────
+function predictiveEngine() {
+  state.pump++;
+  state.hits += (state.pump > 0) ? 1 : 0;
+  state.energy = Math.min(100, state.energy + 3);
+  updateEngineUI();
+  updateUI();
+  log(`🧠 predictiveEngine() · pump=${state.pump} · hits=${state.hits}`, 'highlight');
+}
+
+function resetEngine() {
+  state.pump = 0;
+  state.hits = 0;
+  updateEngineUI();
+  log('⟲ Engine zurückgesetzt', 'highlight');
+}
+
+function updateEngineUI() {
+  document.getElementById('pumpDisplay').textContent = state.pump;
+  document.getElementById('formADisplay').textContent = (state.pump / 6).toFixed(2);
+  document.getElementById('formBDisplay').textContent = (state.pump / 8).toFixed(2);
+  document.getElementById('hitsDisplay').textContent = state.hits;
+}
+
+// ─── MOVES ──────────────────────────────────────────────────────
+function doMove(type) {
+  state.lastMove = type;
+  state.energy = Math.min(100, state.energy + 5);
+  document.getElementById('lastMoveDisplay').textContent = type;
+  log(`🌀 Move: ${type}`, 'highlight');
+  updateUI();
+}
+
+function toggleAxle() {
+  state.axle = (state.axle === 'neutral') ? 'active' : 'neutral';
+  document.getElementById('axleDisplay').textContent = state.axle;
+  log(`↕ Achse → ${state.axle}`, 'highlight');
+}
+
+function doorAction() {
+  state.door = !state.door;
+  log(`🚪 DOOR ${state.door ? 'geöffnet' : 'geschlossen'}`, 'highlight');
+}
+
+function dooAction() {
+  state.doo = !state.doo;
+  log(`◈ DOO ${state.doo ? 'aktiviert' : 'deaktiviert'}`, 'highlight');
+}
+
+// ─── PFAD‑STEP ─────────────────────────────────────────────────
+function stepPFAD() {
+  state.energy = Math.min(100, state.energy + 3);
+  state.gear = (state.gear + 1) % 12;
+  state.mode = MODE_MAP[state.gear] || 'STAGE';
+  state.pfadIndex = (state.pfadIndex + 1) % PFAD.length;
+  state.a81 = PFAD[state.pfadIndex];
+  state.stepCount++;
+  updateUI();
+  drawOrbit();
+  log(`⏭ Step ${state.stepCount} · ${state.mode} · A81=${state.a81} · Zahnrad=${state.gear}`, 'highlight');
+}
+
+function toggleLoop() {
+  if (state.loopTimer) {
+    clearInterval(state.loopTimer); state.loopTimer = null;
+    state.loopActive = false;
+    document.getElementById('btnLoop').textContent = '▶ Loop';
+    log('⏸ Loop gestoppt');
+  } else {
+    state.loopTimer = setInterval(stepPFAD, 500);
+    state.loopActive = true;
+    document.getElementById('btnLoop').textContent = '⏹ Loop';
+    log('▶ Loop gestartet');
   }
 }
 
-function vector(content){
-  return {
-    LEN: content.length,
-    LINES: content.split("\n").length,
-    STATE: content.includes("ERR") ? "kritisch" : "neutral"
-  };
-}
-
-function status(content){
-  if(!content) return "FEHLT";
-  if(content.includes("ERR")) return "ORANGE";
-  return "GRÜN";
-}
-
-async function start(){
-
-  const FILES = [
-    "i.room",
-    "RAW.tmp",
-    "RAW.scan",
-    "RAW.map",
-    "RAW.pipe",
-    "RAW.state",
-    "README.md",
-    "id.html"
-  ];
-
-  const out = document.getElementById("out");
-
-  for(const f of FILES){
-    const content = await load(f);
-    const vec = vector(content || "");
-
-    const div = document.createElement("div");
-    div.className = "panel";
-    div.innerHTML = `
-      <h2>${f} — ${status(content)}</h2>
-      <pre>${content ? content.substring(0,300) : "FEHLT"}</pre>
-      <pre>
-Länge: ${vec.LEN}
-Zeilen: ${vec.LINES}
-Status: ${vec.STATE}
-      </pre>
-    `;
-    out.appendChild(div);
+function toggleOmni() {
+  if (state.gear < 10) {
+    state.gear = 10; state.mode = 'OMNI';
+    log('🌀 OMNI aktiviert!', 'highlight');
+  } else {
+    state.gear = 8; state.mode = 'AIV';
+    log('🌀 OMNI deaktiviert → AIV', 'highlight');
   }
+  updateUI(); drawOrbit();
 }
+
+function resetAll() {
+  if (state.loopTimer) {
+    clearInterval(state.loopTimer); state.loopTimer = null;
+    state.loopActive = false;
+    document.getElementById('btnLoop').textContent = '▶ Loop';
+  }
+  // Grid zurücksetzen
+  state.grid.forEach(c => { c.active = false; c.elem.classList.remove('active', 'glow'); });
+  state.activeCount = 0;
+  state.score = 0;
+  state.energy = 0;
+  state.pump = 0;
+  state.hits = 0;
+  state.lastMove = '—';
+  state.axle = 'neutral';
+  state.door = false;
+  state.doo = false;
+  state.pfadIndex = 0;
+  state.a81 = PFAD[0];
+  state.gear = 0;
+  state.mode = 'STAGE';
+  state.stepCount = 0;
+  document.getElementById('lastMoveDisplay').textContent = '—';
+  document.getElementById('axleDisplay').textContent = 'neutral';
+  updateUI(); updateEngineUI(); drawOrbit();
+  log('⟲ RESET – Alles zurückgesetzt', 'highlight');
+}
+
+// ─── ORBIT CANVAS ──────────────────────────────────────────────
+function drawOrbit() {
+  const canvas = document.getElementById('orbitCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const cx = w/2, cy = h/2, r = Math.min(w,h)*0.4;
+  const t = Date.now()/1000;
+
+  ctx.clearRect(0,0,w,h);
+  // 9 Achsen (d,e,i,n,o,r,s,u,w)
+  const achsen = ['d','e','i','n','o','r','s','u','w'];
+  const points = achsen.map((_,i) => {
+    const angle = (i/achsen.length)*2*Math.PI - Math.PI/2 + Math.sin(t*0.08)*0.02;
+    return { x: cx + r*Math.cos(angle), y: cy + r*Math.sin(angle) };
+  });
+  ctx.strokeStyle = '#1a2230'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  points.forEach((p,i) => {
+    const next = points[(i+1)%points.length];
+    ctx.moveTo(p.x,p.y); ctx.lineTo(next.x,next.y);
+  });
+  ctx.stroke();
+  points.forEach((p,i) => {
+    const active = (achsen[i] === 'd');
+    ctx.beginPath();
+    ctx.arc(p.x,p.y, active?24:14, 0, 2*Math.PI);
+    ctx.fillStyle = active ? '#ffd866' : '#0e141c';
+    ctx.fill();
+    ctx.strokeStyle = active ? '#ffd866' : '#2a3a4a';
+    ctx.lineWidth = active ? 2 : 1;
+    ctx.stroke();
+    ctx.fillStyle = active ? '#06080c' : '#5a6a7a';
+    ctx.font = '600 14px monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(achsen[i], p.x, p.y);
+  });
+  // PFAD-Marker
+  const val = state.a81;
+  const px = cx + Math.sin(t*2 + state.pfadIndex)*Math.min(50, val*0.5);
+  const py = cy + Math.cos(t*2 + state.pfadIndex)*Math.min(50, val*0.5);
+  ctx.fillStyle = val===81 ? '#ff0' : (val===3 ? '#0ff' : '#0f0');
+  ctx.beginPath();
+  ctx.arc(px,py, val===81?10:6, 0, 2*Math.PI);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillText(val, px, py-12);
+  // Legende
+  const modeColors = { STAGE:'#6ec8ff', AIR:'#ffd866', AIV:'#ff7b7b', OMNI:'#b388ff' };
+  const color = modeColors[state.mode] || '#6ec8ff';
+  document.getElementById('orbitLegend')?.remove();
+}
+
+// ─── UI UPDATE ──────────────────────────────────────────────────
+function updateUI() {
+  document.getElementById('activeCount').textContent = state.activeCount;
+  document.getElementById('scoreDisplay').textContent = state.score;
+  document.getElementById('energyDisplay').textContent = Math.round(state.energy);
+  document.getElementById('energyFill').style.width = state.energy + '%';
+  document.getElementById('footerActive').textContent = state.activeCount;
+  document.getElementById('footerEnergy').textContent = Math.round(state.energy);
+  document.getElementById('footerGear').textContent = state.gear;
+
+  document.getElementById('a81Display').textContent = state.a81;
+  document.getElementById('gearDisplay').textContent = state.gear;
+  const modeColors = { STAGE:'#6ec8ff', AIR:'#ffd866', AIV:'#ff7b7b', OMNI:'#b388ff' };
+  document.getElementById('modeDisplay').textContent = state.mode;
+  document.getElementById('modeDisplay').style.color = modeColors[state.mode] || '#6ec8ff';
+
+  // PFAD-Visual
+  for (let i=0; i<PFAD.length; i++) {
+    const el = document.getElementById('p'+i);
+    if (el) {
+      el.className = (i===state.pfadIndex) ? 'active' : '';
+      el.textContent = PFAD[i];
+    }
+  }
+  document.getElementById('ledSystem').className = 'led ' + (state.activeCount>0 ? 'on' : 'off');
+  document.getElementById('ledPulse').className = 'led ' + (state.loopActive ? 'pulse' : 'on');
+  document.getElementById('ledConn').className = 'led ' + (state.door || state.doo ? 'on' : 'off');
+}
+
+function updateActiveCount() {
+  const count = state.grid.filter(c => c.active).length;
+  state.activeCount = count;
+  document.getElementById('activeCount').textContent = count;
+}
+
+// ─── LOG ────────────────────────────────────────────────────────
+function log(msg, type='') {
+  const box = document.getElementById('logBox');
+  const time = new Date().toLocaleTimeString('de-DE');
+  const entry = document.createElement('div');
+  entry.className = 'entry';
+  const cls = type==='highlight' ? 'msg highlight' : 'msg';
+  entry.innerHTML = `<span class="time">[${time}]</span> <span class="${cls}">${msg}</span>`;
+  box.prepend(entry);
+  while (box.children.length > 60) box.lastChild?.remove();
+}
+
+// ─── EVENTS ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildGrid();
+  updateUI();
+  updateEngineUI();
+  drawOrbit();
+  log('🌀 81‑MATRIX · BOOT‑BLOCK · PFAD‑LOGIK bereit', 'highlight');
+});
+
+document.getElementById('btnPredictive').addEventListener('click', predictiveEngine);
+document.getElementById('btnResetEngine').addEventListener('click', resetEngine);
+
+document.querySelectorAll('[data-move]').forEach(btn => {
+  btn.addEventListener('click', () => doMove(btn.dataset.move));
+});
+document.getElementById('btnToggleAxle').addEventListener('click', toggleAxle);
+document.getElementById('btnDoor').addEventListener('click', doorAction);
+document.getElementById('btnDoo').addEventListener('click', dooAction);
+
+document.getElementById('btnStep').addEventListener('click', stepPFAD);
+document.getElementById('btnLoop').addEventListener('click', toggleLoop);
+document.getElementById('btnStop').addEventListener('click', () => {
+  if (state.loopTimer) {
+    clearInterval(state.loopTimer); state.loopTimer = null;
+    state.loopActive = false;
+    document.getElementById('btnLoop').textContent = '▶ Loop';
+    log('⏹ Loop manuell gestoppt');
+  }
+});
+document.getElementById('btnOmni').addEventListener('click', toggleOmni);
+document.getElementById('btnResetAll').addEventListener('click', resetAll);
+
+// ─── TASTATUR ──────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ') { e.preventDefault(); stepPFAD(); }
+  if (e.key === 'l' || e.key === 'L') toggleLoop();
+  if (e.key === 'o' || e.key === 'O') toggleOmni();
+  if (e.key === 'r' || e.key === 'R') resetAll();
+});
+
+// ─── INITIALER GLANZ ──────────────────────────────────────────
+setTimeout(() => {
+  for (let i=0; i<10; i++) {
+    const idx = Math.floor(Math.random()*81);
+    const cell = state.grid[idx];
+    if (cell) {
+      cell.elem.classList.add('active');
+      cell.active = true;
+      state.activeCount++;
+      state.score += 10;
+      state.energy = Math.min(100, state.energy + 2);
+      state.pump++;
+      state.hits++;
+    }
+  }
+  updateUI(); updateEngineUI();
+  log('✨ 10 Zellen initial aktiviert', 'highlight');
+}, 300);
 </script>
-</head>
-
-<body onload="start()">
-
-<h1>i · EBENE · INPUT · RAW</h1>
-
-<div id="out"></div>
-
 </body>
 </html>
